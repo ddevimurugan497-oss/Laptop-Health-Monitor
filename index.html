@@ -1,0 +1,589 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laptop Health Monitor</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+            padding: 25px;
+        }
+
+        .container {
+            max-width: 1150px;
+            margin: auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 10px 15px;
+            border-radius: 20px;
+            background: #334155;
+            font-size: 14px;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: #1e293b;
+            padding: 22px;
+            border: 1px solid #334155;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .value {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .description {
+            color: #94a3b8;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .green {
+            color: #4ade80;
+        }
+
+        .yellow {
+            color: #facc15;
+        }
+
+        .red {
+            color: #f87171;
+        }
+
+        .sensor-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+        }
+
+        .sensor {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 17px;
+        }
+
+        .sensor-name {
+            font-size: 14px;
+            color: #cbd5e1;
+            margin-bottom: 10px;
+            overflow-wrap: anywhere;
+        }
+
+        .sensor-value {
+            font-size: 23px;
+            font-weight: bold;
+        }
+
+        .recommendation {
+            background: #0f172a;
+            padding: 15px;
+            border-left: 4px solid #38bdf8;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 18px;
+        }
+
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 18px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
+        .secondary-button {
+            background: #475569;
+        }
+
+        .secondary-button:hover {
+            background: #64748b;
+        }
+
+        footer {
+            text-align: center;
+            color: #64748b;
+            font-size: 13px;
+            padding: 20px 0;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 23px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+
+    <header>
+        <div>
+            <h1>Laptop Health Monitor</h1>
+            <p class="subtitle">
+                Live hardware sensor monitoring dashboard
+            </p>
+        </div>
+
+        <div class="badge" id="connectionBadge">
+            Connecting...
+        </div>
+    </header>
+
+    <div class="dashboard">
+
+        <div class="card">
+            <h2>Sensor Connection</h2>
+            <div class="value" id="sensorStatus">Checking...</div>
+            <p class="description" id="sensorMessage">
+                Connecting to Libre Hardware Monitor.
+            </p>
+        </div>
+
+        <div class="card">
+            <h2>Available Sensors</h2>
+            <div class="value" id="sensorCount">0</div>
+            <p class="description">
+                Number of live temperature sensors detected.
+            </p>
+        </div>
+
+        <div class="card">
+            <h2>Highest Sensor Reading</h2>
+            <div class="value" id="highestReading">--</div>
+            <p class="description" id="highestSensorName">
+                Waiting for sensor data.
+            </p>
+        </div>
+
+    </div>
+
+    <section class="card">
+        <h2>Temperature Sensors</h2>
+
+        <div class="sensor-list" id="sensorList">
+            <p class="description">Loading sensor data...</p>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>Cooling Recommendations</h2>
+
+        <div id="recommendations">
+            <p class="description">
+                Recommendations will appear when sensor data is available.
+            </p>
+        </div>
+
+        <div class="button-row">
+            <button type="button" id="refreshButton">
+                Refresh Data
+            </button>
+
+            <button type="button" id="autoButton"
+                    class="secondary-button">
+                Auto Refresh: ON
+            </button>
+        </div>
+
+        <p class="description" id="lastUpdated" style="margin-top:15px;">
+            Last updated: Not yet
+        </p>
+    </section>
+
+    <footer>
+        Readings are supplied by Libre Hardware Monitor.
+        Sensor availability depends on your laptop hardware.
+    </footer>
+
+</div>
+
+<script>
+    "use strict";
+
+    let autoRefresh = true;
+    let refreshTimer = null;
+    let requestInProgress = false;
+
+    const connectionBadge =
+        document.getElementById("connectionBadge");
+
+    const sensorStatus =
+        document.getElementById("sensorStatus");
+
+    const sensorMessage =
+        document.getElementById("sensorMessage");
+
+    const sensorCount =
+        document.getElementById("sensorCount");
+
+    const highestReading =
+        document.getElementById("highestReading");
+
+    const highestSensorName =
+        document.getElementById("highestSensorName");
+
+    const sensorList =
+        document.getElementById("sensorList");
+
+    const recommendations =
+        document.getElementById("recommendations");
+
+    const refreshButton =
+        document.getElementById("refreshButton");
+
+    const autoButton =
+        document.getElementById("autoButton");
+
+    const lastUpdated =
+        document.getElementById("lastUpdated");
+
+
+    // Create text safely without inserting HTML from sensor names.
+    function createTextElement(tag, className, text) {
+        const element = document.createElement(tag);
+        element.className = className;
+        element.textContent = text;
+        return element;
+    }
+
+
+    function showRecommendation(text) {
+        const item = createTextElement(
+            "div",
+            "recommendation",
+            text
+        );
+
+        recommendations.appendChild(item);
+    }
+
+
+    function getReadingClass(value) {
+        if (value >= 80) return "red";
+        if (value >= 65) return "yellow";
+        return "green";
+    }
+
+
+    function renderSensors(sensors) {
+        sensorList.replaceChildren();
+
+        if (sensors.length === 0) {
+            sensorList.appendChild(
+                createTextElement(
+                    "p",
+                    "description",
+                    "No temperature sensors detected."
+                )
+            );
+            return;
+        }
+
+        sensors.forEach(function(sensor) {
+            const card = document.createElement("div");
+            card.className = "sensor";
+
+            const name = createTextElement(
+                "div",
+                "sensor-name",
+                sensor.name || "Unnamed sensor"
+            );
+
+            const temperature =
+                typeof sensor.temperature === "number"
+                    ? sensor.temperature
+                    : Number(sensor.temperature);
+
+            let readingText = "Unavailable";
+            let readingClass = "sensor-value";
+
+            if (Number.isFinite(temperature)) {
+                readingText = temperature.toFixed(1) + " °C";
+                readingClass += " " + getReadingClass(temperature);
+            }
+
+            const value = createTextElement(
+                "div",
+                readingClass,
+                readingText
+            );
+
+            card.appendChild(name);
+            card.appendChild(value);
+            sensorList.appendChild(card);
+        });
+    }
+
+
+    function renderRecommendations(sensors) {
+        recommendations.replaceChildren();
+
+        const validSensors = sensors.filter(function(sensor) {
+            const value = Number(sensor.temperature);
+            return Number.isFinite(value);
+        });
+
+        if (validSensors.length === 0) {
+            showRecommendation(
+                "Live temperature readings are unavailable. " +
+                "Check Libre Hardware Monitor and its Remote Web Server."
+            );
+            return;
+        }
+
+        const hottest = validSensors.reduce(function(previous, current) {
+            return Number(current.temperature) >
+                   Number(previous.temperature)
+                ? current
+                : previous;
+        });
+
+        const temperature = Number(hottest.temperature);
+
+        if (temperature >= 80) {
+            showRecommendation(
+                "High temperature reading detected for " +
+                hottest.name + ". Save your work, reduce demanding tasks, " +
+                "and allow the laptop to cool down."
+            );
+        } else if (temperature >= 65) {
+            showRecommendation(
+                "A sensor reading is elevated. Keep the air vents clear " +
+                "and reduce heavy workloads if possible."
+            );
+        } else {
+            showRecommendation(
+                "Current sensor readings are below the alert threshold. " +
+                "Continue to keep the laptop on a hard, flat surface."
+            );
+        }
+
+        showRecommendation(
+            "Clean dust from the cooling vents when safe to do so. " +
+            "Do not block the laptop's air intake or exhaust."
+        );
+    }
+
+
+    async function loadStatus() {
+        if (requestInProgress) return;
+
+        requestInProgress = true;
+        refreshButton.disabled = true;
+        connectionBadge.textContent = "Checking...";
+
+        try {
+            const response = await fetch("/api/status", {
+                method: "GET",
+                cache: "no-store"
+            });
+
+            if (!response.ok) {
+                throw new Error("Server returned HTTP " + response.status);
+            }
+
+            const data = await response.json();
+
+            if (!data.available) {
+                throw new Error(
+                    data.message || "Sensor data is unavailable."
+                );
+            }
+
+            const sensors = Array.isArray(data.temperatures)
+                ? data.temperatures
+                : [];
+
+            connectionBadge.textContent = "Connected";
+            connectionBadge.className = "badge green";
+
+            sensorStatus.textContent = "Connected";
+            sensorStatus.className = "value green";
+
+            sensorMessage.textContent = data.message ||
+                "Live sensor data received successfully.";
+
+            sensorCount.textContent = String(sensors.length);
+
+            const validSensors = sensors.filter(function(sensor) {
+                return Number.isFinite(Number(sensor.temperature));
+            });
+
+            if (validSensors.length > 0) {
+                const hottest = validSensors.reduce(
+                    function(previous, current) {
+                        return Number(current.temperature) >
+                               Number(previous.temperature)
+                            ? current
+                            : previous;
+                    }
+                );
+
+                highestReading.textContent =
+                    Number(hottest.temperature).toFixed(1) + " °C";
+
+                highestReading.className =
+                    "value " + getReadingClass(
+                        Number(hottest.temperature)
+                    );
+
+                highestSensorName.textContent =
+                    hottest.name || "Unnamed sensor";
+            } else {
+                highestReading.textContent = "--";
+                highestReading.className = "value";
+                highestSensorName.textContent =
+                    "No valid readings available.";
+            }
+
+            renderSensors(sensors);
+            renderRecommendations(sensors);
+
+            lastUpdated.textContent =
+                "Last updated: " + new Date().toLocaleTimeString();
+
+        } catch (error) {
+            connectionBadge.textContent = "Disconnected";
+            connectionBadge.className = "badge red";
+
+            sensorStatus.textContent = "Unavailable";
+            sensorStatus.className = "value red";
+
+            sensorMessage.textContent =
+                "Cannot reach the sensor API. Check that Flask and " +
+                "Libre Hardware Monitor are running.";
+
+            sensorCount.textContent = "0";
+            highestReading.textContent = "--";
+            highestSensorName.textContent = "No live reading available.";
+
+            sensorList.replaceChildren();
+            sensorList.appendChild(
+                createTextElement(
+                    "p",
+                    "description",
+                    "Unable to load sensors. " + error.message
+                )
+            );
+
+            recommendations.replaceChildren();
+            showRecommendation(
+                "Start the Flask server and Libre Hardware Monitor, " +
+                "then click Refresh Data."
+            );
+
+        } finally {
+            requestInProgress = false;
+            refreshButton.disabled = false;
+        }
+    }
+
+
+    function startAutoRefresh() {
+        if (refreshTimer !== null) {
+            clearInterval(refreshTimer);
+        }
+
+        refreshTimer = null;
+
+        if (autoRefresh) {
+            refreshTimer = setInterval(loadStatus, 3000);
+        }
+    }
+
+
+    refreshButton.addEventListener("click", function() {
+        loadStatus();
+    });
+
+
+    autoButton.addEventListener("click", function() {
+        autoRefresh = !autoRefresh;
+
+        autoButton.textContent = autoRefresh
+            ? "Auto Refresh: ON"
+            : "Auto Refresh: OFF";
+
+        startAutoRefresh();
+
+        if (autoRefresh) {
+            loadStatus();
+        }
+    });
+
+
+    // Initial load and automatic refresh.
+    loadStatus();
+    startAutoRefresh();
+</script>
+</body>
+</html>
+```
